@@ -9,18 +9,18 @@
 <body>
 <div class="container">
 	<div class="row">
-		<h1>Mimi Downloader</h1>
-		<p id="help">欢迎使用米米下载器，轻松下载高清视频、弹幕</p>
+		<h1>BiliDown</h1>
+		<p id="help">欢迎使用BiliDown，轻松下载高清视频、弹幕</p>
 	</div>
 	<div class="row">
 		<div class="form-group">
 			<label class="control-label">视频链接</label>
-			<input type="text" class="form-control" id="videoUrl" placeholder="若有分p，请带上?p=参数">
+			<input type="text" class="form-control" id="videoUrl" placeholder="https://www.bilibili.com/video/BV17x411w7KC">
 			<span class="glyphicon glyphicon-remove form-control-feedback"></span>
 		</div>
 	</div>
 	<div class="row">
-		<button class="btn btn-success" onclick="downloader.getAid()">获取下载链接</button>
+		<button class="btn btn-success" onclick="downloader.getAid()">解析</button>
 		<button class="btn btn-default" onclick="help()">帮助</button>
 		<button class="btn btn-default" onclick="about()">关于</button>
 	</div>
@@ -54,6 +54,7 @@
 					<thead>
 						<tr>
 							<th>编号</th>
+							<th>标题</th>
 							<th>时长(s)</th>
 							<th>大小(MB)</th>
 							<th>选定</th>
@@ -64,6 +65,9 @@
 				<button class="btn btn-primary" onclick="selectAll()">全选</button>
 				<button class="btn btn-default" onclick="selectReverse()">反选</button>
 				<button class="btn btn-danger" onclick="selectNone()">全不选</button>
+				<button class="btn btn btn-secondary" onclick="downloader.selectBarrage('ass',this)" style="float: right">with .ass</button>
+				<p style="float: right">&nbsp;</p>
+				<button class="btn btn btn-secondary" onclick="downloader.selectBarrage('xml',this)" style="float: right">with .xml</button>
 			</div>
 			<div class="row">
 				<div class="form-group mt20">
@@ -220,7 +224,7 @@ function help() {
 }
 
 function about() {
-	message(`Mimi Downloader Ver ${require("../package.json").version}\n\nWe are using Node.js ${process.versions.node}, Chromium ${process.versions.chrome}, and Electron ${process.versions.electron}. Powered by Mimi.`);
+	message(`BiliDown Ver ${require("../package.json").version}\n\nWe are using Node.js ${process.versions.node}, Chromium ${process.versions.chrome}, and Electron ${process.versions.electron}. Powered by Borber. `);
 }
 
 function changeMenu(index) {

@@ -26,6 +26,22 @@ class Downloader {
 		this.name = "";
 		this.links = [];
 		this.downloading = [];
+		this.pages = ""; // 记录BV av所有分P 信息
+		this.epList = ""; // 记录ep 试试所有分P 信息
+		this.dass = false; //同时下载 ass 弹幕
+		this.dxml = false; // 同时下载 xml 弹幕
+	}
+
+	selectBarrage(kind,e) {
+		if (e.className.includes("btn-secondary")){
+			e.className = e.className.replace("btn-secondary","btn-success");
+			kind === "ass"?this.dass = true:this.dxml = true;
+		} else {
+			e.className = e.className.replace("btn-success","btn-secondary");
+			kind === "ass"?this.dass = false:this.dxml = false;
+		}
+		console.log("ass:",this.dass);
+		console.log("xml:",this.dxml);
 	}
 
 	getVideoUrl() {
@@ -34,7 +50,7 @@ class Downloader {
 		const mapping = {
 			"BV": "https://www.bilibili.com/video/",
 			"av": "https://www.bilibili.com/video/",
-			"ep": "https://www.bilibili.com/bangumi/play/",
+			"ep": "https://www.bilibili.com/bangumi/play/", // 看起来 原版 番剧下载还是有点问题的
 			"ss": "https://www.bilibili.com/bangumi/play/"
 		};
 		for (let [key, value] of Object.entries(mapping)) {
@@ -63,18 +79,22 @@ class Downloader {
 				let data = result.match(/__INITIAL_STATE__=(.*?);\(function\(\)/)[1];
 				data = JSON.parse(data);
 				console.log("INITIAL STATE", data);
+
 				if (type === "BV" || type === "av") {
 					this.aid = data.videoData.aid;
 					this.pid = parseInt(url.split("p=")[1], 10) || 1;
 					this.cid = data.videoData.pages[this.pid - 1].cid;
+					this.pages = data.videoData.pages; // 获取所有分P 数据
 				}
 				else if (type === "ep") {
 					this.aid = data.epInfo.aid;
 					this.cid = data.epInfo.cid;
+					this.epList = data.epList;
 				}
 				else if (type === "ss") {
 					this.aid = data.epList[0].aid;
 					this.cid = data.epList[0].cid;
+					this.epList = data.epList;
 				}
 				this.getInfo();
 			})
@@ -112,7 +132,7 @@ class Downloader {
 					</tr>`);
 				}
 				this.name = `${id}-${data.title}`;
-				$("#videoName").val(this.name);
+				$("#videoName").val(this.name); //视频名字 这里我觉得这里删掉 然后改成 在 table 里面会更好一些
 			})
 			.catch(error => showError("获取视频信息出错！"));
 	}
@@ -150,8 +170,8 @@ class Downloader {
 							16: "流畅 360P",
 							15: "流畅 360P"
 						}; //需要修改，不是一一对应
-					$("#quality").html(qualityArray[quality] || "未知");
-					$("#success").show();
+					$("#quality").html(qualityArray[quality] || "未知"); // 此处显示清晰度
+					$("#success").show(); //此处显示 解析后页面
 					fallback ? $("#error").show() : $("#error").hide();
 					fallback ? this.parseDataFallback(target) : this.parseData(target);
 				} else {
@@ -172,6 +192,7 @@ class Downloader {
 			this.links.push(part.find("url").text());
 			$("tbody").eq(0).append(`<tr>
 				<td>${part.find("order").text()}</td>
+				<td>${this.pages[0].part}</td>
 				<td>${part.find("length").text() / 1e3}</td>
 				<td>${part.find("size").text() / 1e6}</td>
 				<td>
@@ -192,6 +213,7 @@ class Downloader {
 			this.links.push(part.url);
 			$("tbody").eq(0).append(`<tr>
 				<td>${part.order}</td>
+				<td>${this.pages[0].part}</td>
 				<td>${part.length / 1e3}</td>
 				<td>${part.size / 1e6}</td>
 				<td>
@@ -208,7 +230,7 @@ class Downloader {
 	download() {
 		let { cid } = this, flag = true;
 		document.querySelectorAll("tbody input[type=checkbox]").forEach((element, part) => {
-			if (!element.checked || this.downloading.includes(this.links[part])) return;
+			if (!element.checked || this.downloading.includes(this.links[part])) return; // 猜测part 是当前列在表中的行数
 			$("#download").append(`<span>${cid}-${part}</span>
 				<span class="speed"></span>
 				<span class="eta"></span>

@@ -1,6 +1,6 @@
 {
-	"name": "mimi-downloader",
-	"version": "1.5.2",
+	"name": "bilidown",
+	"version": "0.0.1",
 	"description": "Yet another video downloader for Bilibili.",
 	"main": "app/main.js",
 	"scripts": {
@@ -8,19 +8,19 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/stevenjoezhang/bilibili-downloader"
+		"url": "git+https://github.com/Borber/bilibili-downloader"
 	},
 	"keywords": [
 		"Downloader",
 		"Bilibili"
 	],
-	"author": "Mimi <stevenjoezhang@gmail.com> https://zhangshuqiao.org",
+	"author": "Borber <borber.drum@gmail.com> https://borber.cn",
 	"readme": "https://github.com/stevenjoezhang/bilibili-downloader/blob/master/README.md",
 	"license": "GPL-3.0-or-later",
 	"bugs": {
-		"url": "https://github.com/stevenjoezhang/bilibili-downloader/issues"
+		"url": "https://github.com/Borber/bilibili-downloader/issues"
 	},
-	"homepage": "https://github.com/stevenjoezhang/bilibili-downloader",
+	"homepage": "https://github.com/Borber/bilibili-downloader",
 	"dependencies": {
 		"bootstrap": "^3.4.1",
 		"jquery": "^3.4.1",
