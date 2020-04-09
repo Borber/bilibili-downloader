@@ -30,6 +30,7 @@ class Downloader {
 		this.epList = ""; // 记录ep 试试所有分P 信息
 		this.dass = false; //同时下载 ass 弹幕
 		this.dxml = false; // 同时下载 xml 弹幕
+		this.tableInfo = [];
 	}
 
 	selectBarrage(kind,e) {
@@ -107,9 +108,10 @@ class Downloader {
 			showError("获取视频 cid 出错！");
 			return;
 		}
-		this.getData();
+		for (let i = 0;i < this.pages.length;i++){
+			this.getData(i,false);
+		}
 		getDanmaku(); //获取cid后，获取下载链接和弹幕信息
-		$("#cid").html(cid);
 		$("#nav").show();
 		if ($(".info").eq(1).is(":hidden")) {
 			changeMenu(0);
@@ -137,8 +139,9 @@ class Downloader {
 			.catch(error => showError("获取视频信息出错！"));
 	}
 
-	getData(fallback) {
-		let { cid, type } = this, playUrl;
+	getData(index,fallback) {
+		let {type} = this, playUrl;
+		let cid = this.pages[index].cid;
 		if (fallback) {
 			let params = `cid=${cid}&module=movie&player=1&quality=112&ts=1`,
 				sign = crypto.createHash("md5").update(params + "9b288147e5474dd2aa67085f716c560d").digest("hex");
@@ -173,10 +176,10 @@ class Downloader {
 					$("#quality").html(qualityArray[quality] || "未知"); // 此处显示清晰度
 					$("#success").show(); //此处显示 解析后页面
 					fallback ? $("#error").show() : $("#error").hide();
-					fallback ? this.parseDataFallback(target) : this.parseData(target);
+					fallback ? this.parseDataFallback(index,target) : this.parseData(index,target);
 				} else {
 					if (fallback) throw Error();
-					this.getData(true);
+					this.getData(index,true);
 				}
 			})
 			.catch(error => {
@@ -184,53 +187,48 @@ class Downloader {
 			});
 	}
 
-	parseDataFallback(target) {
+	parseDataFallback(index,target) {
 		this.links = [];
-		$("tbody").eq(0).html("");
 		target.each((i, o) => {
 			var part = $(o);
-			this.links.push(part.find("url").text());
-			$("tbody").eq(0).append(`<tr>
-				<td>${part.find("order").text()}</td>
-				<td>${this.pages[0].part}</td>
-				<td>${part.find("length").text() / 1e3}</td>
-				<td>${part.find("size").text() / 1e6}</td>
-				<td>
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" checked="true">
-						</label>
-					</div>
-				</td>
-			</tr>`);
+			this.tableInfo[index] = [index,this.pages[index].cid,this.pages[index].part,part.find("length").text() / 1e3,part.find("size").text() / 1e6,part.find("url").text()];
+			if (this.tableInfo.length === this.pages.length) this.getTableInfo();
 		});
 	}
 
-	parseData(target) {
+	parseData(index,target) {
 		this.links = [];
-		$("tbody").eq(0).html("");
 		for (let part of target) {
-			this.links.push(part.url);
-			$("tbody").eq(0).append(`<tr>
-				<td>${part.order}</td>
-				<td>${this.pages[0].part}</td>
-				<td>${part.length / 1e3}</td>
-				<td>${part.size / 1e6}</td>
-				<td>
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" checked="true">
-						</label>
-					</div>
-				</td>
-			</tr>`);
+			this.tableInfo[index] = [index,this.pages[index].cid,this.pages[index].part,part.length / 1e3,part.size / 1e6,part.url];
 		}
+		if (this.tableInfo.length === this.pages.length) this.getTableInfo();
+	}
+
+	getTableInfo(){
+		$("tbody").eq(0).html("");
+		for (let i = 0;i < this.pages.length;i++){
+			$("tbody").eq(0).append(`<tr>
+			<td>${this.tableInfo[i][0]}</td>
+			<td>${this.tableInfo[i][1]}</td>
+			<td>${this.tableInfo[i][2]}</td>
+			<td>${this.tableInfo[i][3]}</td>
+			<td>${this.tableInfo[i][4]}</td>
+			<td>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" checked="true">
+					</label>
+				</div>
+			</td>
+		</tr>`);
+		}
+		console.log(this.tableInfo);
 	}
 
 	download() {
 		let { cid } = this, flag = true;
 		document.querySelectorAll("tbody input[type=checkbox]").forEach((element, part) => {
-			if (!element.checked || this.downloading.includes(this.links[part])) return; // 猜测part 是当前列在表中的行数
+			if (!element.checked || this.downloading.includes(this.links[part])) return; // 猜测part 是当前列在表中的行数 这里反复没有设计出批量下载
 			$("#download").append(`<span>${cid}-${part}</span>
 				<span class="speed"></span>
 				<span class="eta"></span>
@@ -240,7 +238,7 @@ class Downloader {
 						<span class="progress-value">0%</span>
 					</div>
 				</div>`);
-			this.downloading.push(this.links[part]);
+			this.downloading.push(this.links[part]); // 添加链接到正在下载
 			ipcRenderer.send("length", this.downloading.filter(item => item !== "").length);
 			flag = false;
 			this.downloadLink(part);
